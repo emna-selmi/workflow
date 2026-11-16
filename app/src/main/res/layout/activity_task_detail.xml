@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
+        <Button android:id="@+id/btnBack" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="← Retour"/>
+        <TextView android:id="@+id/tvTitle" style="@style/Title" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+        <TextView android:id="@+id/tvPriority" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:paddingHorizontal="8dp" android:paddingVertical="3dp" android:textSize="12sp" android:textStyle="bold"/>
+        <TextView android:id="@+id/tvLocked" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:padding="12dp" android:background="#FDE8E9" android:textColor="#A3202A" android:textStyle="bold" android:visibility="gone" android:text="🔒 Tâche bloquée : l’échéance est dépassée. Seul l’admin peut la réactiver."/>
+        <com.google.android.material.card.MaterialCardView style="@style/Card" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginVertical="6dp">
+            <TextView android:id="@+id/tvInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="14dp" android:lineSpacingExtra="4dp"/>
+        </com.google.android.material.card.MaterialCardView>
+        <TextView android:id="@+id/tvDesc" style="@style/Muted" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+        <com.google.android.material.button.MaterialButtonToggleGroup android:id="@+id/toggle" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" app:singleSelection="true" app:selectionRequired="true">
+            <Button android:id="@+id/btnTodo" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:paddingHorizontal="2dp" android:textSize="12sp" android:text="À faire"/>
+            <Button android:id="@+id/btnDoing" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:paddingHorizontal="2dp" android:textSize="12sp" android:text="En cours"/>
+            <Button android:id="@+id/btnReview" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:paddingHorizontal="2dp" android:textSize="12sp" android:text="En revue"/>
+            <Button android:id="@+id/btnDone" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:paddingHorizontal="2dp" android:textSize="12sp" android:text="Terminée"/>
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+        <com.google.android.material.card.MaterialCardView style="@style/Card" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginVertical="6dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="14dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Progression" android:textStyle="bold"/>
+                    <TextView android:id="@+id/tvPct" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                </LinearLayout>
+                <com.google.android.material.slider.Slider android:id="@+id/slider" android:layout_width="match_parent" android:layout_height="wrap_content" android:valueFrom="0" android:valueTo="100" android:stepSize="1"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        <Button android:id="@+id/btnReactivate" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:visibility="gone" android:text="Réactiver la tâche"/>
+        <Button android:id="@+id/btnSave" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Enregistrer" android:layout_marginTop="12dp"/>
+    </LinearLayout></ScrollView>
