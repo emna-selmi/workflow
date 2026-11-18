@@ -11,6 +11,7 @@ data class User(val id: Int, val name: String, val email: String, val role: Stri
 data class Task(val id: Int, val title: String, val description: String, val priority: String,
                 val status: String, val progress: Int, val dueDate: String, val assignedTo: Int, val assignee: String)
 data class Notif(val id: Int, val message: String, val createdAt: String, val read: Boolean)
+data class Comment(val id: Int, val author: String, val text: String, val createdAt: String)
 
 /** Une tâche non terminée dont l'échéance est passée est en retard : elle est bloquée. */
 fun Task.isOverdue(): Boolean =
@@ -19,7 +20,7 @@ fun Task.isOverdue(): Boolean =
 val STATUS = linkedMapOf("todo" to "À faire", "doing" to "En cours", "review" to "En revue", "done" to "Terminée")
 val PRIORITY = linkedMapOf("urgent" to "Urgente", "high" to "Haute", "medium" to "Moyenne", "low" to "Basse")
 
-class Db(ctx: Context) : SQLiteOpenHelper(ctx, "taskflow.db", null, 2) {
+class Db(ctx: Context) : SQLiteOpenHelper(ctx, "taskflow.db", null, 3) {
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT UNIQUE, password TEXT, role TEXT)")
@@ -29,6 +30,9 @@ class Db(ctx: Context) : SQLiteOpenHelper(ctx, "taskflow.db", null, 2) {
             reminded INTEGER DEFAULT 0, expired_notified INTEGER DEFAULT 0)""")
         db.execSQL("""CREATE TABLE notifications(id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER,
             message TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, is_read INTEGER DEFAULT 0)""")
+
+        db.execSQL("""CREATE TABLE comments(id INTEGER PRIMARY KEY AUTOINCREMENT, task_id INTEGER REFERENCES tasks(id),
+            user_id INTEGER REFERENCES users(id), text TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)""")
 
         // Données de démonstration (mots de passe en clair : démo uniquement)
         db.execSQL("""INSERT INTO users(name,email,password,role) VALUES
@@ -48,6 +52,10 @@ class Db(ctx: Context) : SQLiteOpenHelper(ctx, "taskflow.db", null, 2) {
         if (oldV < 2) {  // ajoute les colonnes de suivi des notifications d'échéance
             db.execSQL("ALTER TABLE tasks ADD COLUMN reminded INTEGER DEFAULT 0")
             db.execSQL("ALTER TABLE tasks ADD COLUMN expired_notified INTEGER DEFAULT 0")
+        }
+        if (oldV < 3) {  // ajoute la table des commentaires
+            db.execSQL("""CREATE TABLE comments(id INTEGER PRIMARY KEY AUTOINCREMENT, task_id INTEGER REFERENCES tasks(id),
+                user_id INTEGER REFERENCES users(id), text TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)""")
         }
     }
 
@@ -113,6 +121,17 @@ class Db(ctx: Context) : SQLiteOpenHelper(ctx, "taskflow.db", null, 2) {
         writableDatabase.execSQL("UPDATE tasks SET due_date=?, reminded=0, expired_notified=0 WHERE id=?", arrayOf<Any>(newDate, id))
 
     fun adminIds(): List<Int> = query("SELECT id FROM users WHERE role='admin'") { it.getInt(0) }
+
+    // ---------- Commentaires ----------
+    fun addComment(taskId: Int, userId: Int, text: String) {
+        writableDatabase.insert("comments", null, ContentValues().apply {
+            put("task_id", taskId); put("user_id", userId); put("text", text)
+        })
+    }
+
+    fun comments(taskId: Int): List<Comment> =
+        query("SELECT c.id,u.name,c.text,c.created_at FROM comments c JOIN users u ON u.id=c.user_id WHERE c.task_id=? ORDER BY c.id",
+            arrayOf("$taskId")) { Comment(it.getInt(0), it.getString(1), it.getString(2), it.getString(3)) }
 
     // ---------- Notifications ----------
     fun addNotif(userId: Int, msg: String) {

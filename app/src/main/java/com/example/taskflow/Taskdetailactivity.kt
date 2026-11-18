@@ -2,10 +2,10 @@ package com.example.taskflow
 
 import android.os.Bundle
 import android.view.View
-import android.widget.EditText
-import android.widget.FrameLayout
+import android.widget.TextView
 import android.widget.Toast
 import com.example.taskflow.databinding.ActivityTaskDetailBinding
+import com.example.taskflow.databinding.DialogReactivateBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.time.LocalDate
 
@@ -39,6 +39,31 @@ class TaskDetailActivity : BaseActivity() {
             }
         }
 
+        // Commentaires
+        fun loadComments() {
+            b.commentList.removeAllViews()
+            val list = db.comments(t.id)
+            b.tvNoComment.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+            list.forEach { c ->
+                val v = layoutInflater.inflate(R.layout.item_comment, b.commentList, false)
+                v.findViewById<TextView>(R.id.tvAuthor).text = c.author
+                v.findViewById<TextView>(R.id.tvTime).text = c.createdAt
+                v.findViewById<TextView>(R.id.tvText).text = c.text
+                b.commentList.addView(v)
+            }
+        }
+        loadComments()
+        b.btnSend.setOnClickListener {
+            val text = b.etComment.text.toString().trim()
+            if (text.isEmpty()) {
+                Toast.makeText(this, "Écrivez un commentaire", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            db.addComment(t.id, uid, text)
+            b.etComment.text.clear()
+            loadComments()
+        }
+
         b.btnBack.setOnClickListener { finish() }
         b.btnSave.setOnClickListener {
             val status = buttons.entries.first { it.value == b.toggle.checkedButtonId }.key
@@ -51,16 +76,12 @@ class TaskDetailActivity : BaseActivity() {
 
     /** L'admin choisit une nouvelle échéance pour réactiver la tâche. */
     private fun reactivateDialog(t: Task) {
-        val input = EditText(this).apply {
-            hint = "Nouvelle échéance (AAAA-MM-JJ)"
-            setText(LocalDate.now().plusDays(7).toString())
-        }
-        val pad = (20 * resources.displayMetrics.density).toInt()
-        val box = FrameLayout(this).apply { setPadding(pad, pad / 2, pad, 0); addView(input) }
+        val d = DialogReactivateBinding.inflate(layoutInflater)
+        d.etDate.setText(LocalDate.now().plusDays(7).toString())
 
-        MaterialAlertDialogBuilder(this).setTitle("Réactiver la tâche").setView(box)
+        MaterialAlertDialogBuilder(this).setTitle("Réactiver la tâche").setView(d.root)
             .setPositiveButton("Réactiver") { _, _ ->
-                val date = runCatching { LocalDate.parse(input.text.toString().trim()) }.getOrNull()
+                val date = runCatching { LocalDate.parse(d.etDate.text.toString().trim()) }.getOrNull()
                 if (date == null || date.isBefore(LocalDate.now())) {
                     Toast.makeText(this, "Entrez une date valide, aujourd’hui ou plus tard (AAAA-MM-JJ)", Toast.LENGTH_LONG).show()
                 } else {
