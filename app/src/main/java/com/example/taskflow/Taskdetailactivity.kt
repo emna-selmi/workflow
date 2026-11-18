@@ -15,7 +15,11 @@ class TaskDetailActivity : BaseActivity() {
         val b = ActivityTaskDetailBinding.inflate(layoutInflater)
         setContentView(b.root)
 
-        val t = db.task(intent.getIntExtra("id", 0))
+        val t = db.task(intent.getIntExtra("id", 0)) ?: run {
+            Toast.makeText(this, "Tâche introuvable", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
         b.tvTitle.text = t.title
         b.tvDesc.text = t.description
         b.tvInfo.text = "Assignée à ${t.assignee}\nÉchéance : ${t.dueDate}"
@@ -69,7 +73,10 @@ class TaskDetailActivity : BaseActivity() {
             val status = buttons.entries.first { it.value == b.toggle.checkedButtonId }.key
             val progress = if (status == "done") 100 else b.slider.value.toInt()
             db.updateTask(t.id, status, progress)
-            if (status == "done") db.notifyAdmins("${t.assignee} a terminé « ${t.title} »")
+            if (status == "done" && t.status != "done") {
+                if (isAdmin) db.addNotif(t.assignedTo, "« ${t.title} » a été marquée terminée par l’admin")
+                else db.notifyAdmins("${t.assignee} a terminé « ${t.title} »")
+            }
             finish()
         }
     }
