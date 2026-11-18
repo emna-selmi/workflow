@@ -98,7 +98,7 @@ class Db(ctx: Context) : SQLiteOpenHelper(ctx, "taskflow.db", null, 3) {
             it.getInt(5), it.getString(6), it.getInt(7), it.getString(8)) }
     }
 
-    fun task(id: Int): Task = tasks().first { it.id == id }
+    fun task(id: Int): Task? = tasks(extra = "t.id=$id").firstOrNull()
 
     fun addTask(title: String, desc: String, priority: String, due: String, assignedTo: Int) {
         writableDatabase.insert("tasks", null, ContentValues().apply {
@@ -123,14 +123,20 @@ class Db(ctx: Context) : SQLiteOpenHelper(ctx, "taskflow.db", null, 3) {
     fun adminIds(): List<Int> = query("SELECT id FROM users WHERE role='admin'") { it.getInt(0) }
 
     // ---------- Commentaires ----------
+    /** Ajoute un commentaire et notifie l'assigné et les admins (sauf l'auteur). */
     fun addComment(taskId: Int, userId: Int, text: String) {
         writableDatabase.insert("comments", null, ContentValues().apply {
             put("task_id", taskId); put("user_id", userId); put("text", text)
         })
+        val t = task(taskId) ?: return
+        val author = user(userId)?.name ?: return
+        val preview = if (text.length > 60) text.take(60) + "…" else text
+        (adminIds() + t.assignedTo).distinct().filter { it != userId }
+            .forEach { addNotif(it, "$author a commenté « ${t.title} » : $preview") }
     }
 
     fun comments(taskId: Int): List<Comment> =
-        query("SELECT c.id,u.name,c.text,c.created_at FROM comments c JOIN users u ON u.id=c.user_id WHERE c.task_id=? ORDER BY c.id",
+        query("SELECT c.id,u.name,c.text,datetime(c.created_at,'localtime') FROM comments c JOIN users u ON u.id=c.user_id WHERE c.task_id=? ORDER BY c.id",
             arrayOf("$taskId")) { Comment(it.getInt(0), it.getString(1), it.getString(2), it.getString(3)) }
 
     // ---------- Notifications ----------
@@ -142,7 +148,7 @@ class Db(ctx: Context) : SQLiteOpenHelper(ctx, "taskflow.db", null, 3) {
         writableDatabase.execSQL("INSERT INTO notifications(user_id,message) SELECT id,? FROM users WHERE role='admin'", arrayOf<Any>(msg))
 
     fun notifs(userId: Int): List<Notif> =
-        query("SELECT id,message,created_at,is_read FROM notifications WHERE user_id=? ORDER BY id DESC", arrayOf("$userId"))
+        query("SELECT id,message,datetime(created_at,'localtime'),is_read FROM notifications WHERE user_id=? ORDER BY id DESC", arrayOf("$userId"))
         { Notif(it.getInt(0), it.getString(1), it.getString(2), it.getInt(3) == 1) }
 
     fun markAllRead(userId: Int) =

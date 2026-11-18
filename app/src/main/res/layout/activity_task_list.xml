@@ -9,6 +9,7 @@
             <com.google.android.material.chip.Chip android:id="@+id/chipAll" style="@style/Widget.Material3.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Toutes" android:checked="true"/>
             <com.google.android.material.chip.Chip android:id="@+id/chipTodo" style="@style/Widget.Material3.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="À faire"/>
             <com.google.android.material.chip.Chip android:id="@+id/chipDoing" style="@style/Widget.Material3.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="En cours"/>
+            <com.google.android.material.chip.Chip android:id="@+id/chipReview" style="@style/Widget.Material3.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="En revue"/>
             <com.google.android.material.chip.Chip android:id="@+id/chipDone" style="@style/Widget.Material3.Chip.Filter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Terminées"/>
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
