@@ -13,10 +13,13 @@ class ProfileActivity : BaseActivity() {
         val b = ActivityProfileBinding.inflate(layoutInflater)
         setContentView(b.root)
 
-        val u = db.user(uid)!!
+        val u = db.user(uid) ?: run {
+            startActivity(Intent(this, LoginActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+            return
+        }
         val mine = db.tasks(if (isAdmin) null else uid)
         val today = LocalDate.now().toString()
-        b.tvAvatar.text = u.name.split(" ").map { it.first() }.joinToString("").take(2)
+        b.tvAvatar.text = u.name.split(" ").filter { it.isNotBlank() }.map { it.first() }.joinToString("").take(2).uppercase()
         b.tvAvatar.background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Color.parseColor("#4F46E5")) }
         b.tvName.text = u.name
         b.tvRole.text = "${u.email} · ${if (isAdmin) "Admin" else "Utilisateur"}"

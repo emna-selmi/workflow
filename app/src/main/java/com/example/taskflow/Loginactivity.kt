@@ -11,7 +11,7 @@ class LoginActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
 
         // « Se souvenir de moi » : connexion automatique si la case était cochée
-        if (uid != -1 && prefs.getBoolean("remember", false)) { goHome(); return }
+        if (uid != -1 && prefs.getBoolean("remember", false) && db.user(uid) != null) { goHome(); return }
 
         val b = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(b.root)

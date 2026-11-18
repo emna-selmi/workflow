@@ -26,7 +26,7 @@ class TaskListActivity : BaseActivity() {
         b.btnNew.setOnClickListener { newTaskDialog() }
         b.chips.setOnCheckedStateChangeListener { _, ids ->
             status = when (ids.firstOrNull()) {
-                R.id.chipTodo -> "todo"; R.id.chipDoing -> "doing"; R.id.chipDone -> "done"; else -> null
+                R.id.chipTodo -> "todo"; R.id.chipDoing -> "doing"; R.id.chipReview -> "review"; R.id.chipDone -> "done"; else -> null
             }
             load()
         }
@@ -41,6 +41,10 @@ class TaskListActivity : BaseActivity() {
     private fun newTaskDialog() {
         val d = DialogNewTaskBinding.inflate(layoutInflater)
         val users = db.users()
+        if (users.isEmpty()) {
+            Toast.makeText(this, "Créez d’abord un membre depuis le tableau de bord", Toast.LENGTH_LONG).show()
+            return
+        }
         d.spUser.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, users.map { it.name })
         d.spPriority.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, PRIORITY.values.toList())
         MaterialAlertDialogBuilder(this).setTitle("Nouvelle tâche").setView(d.root)
@@ -49,8 +53,8 @@ class TaskListActivity : BaseActivity() {
                 if (title.isEmpty()) return@setPositiveButton
                 val dueText = d.etDue.text.toString().trim().ifBlank { LocalDate.now().plusDays(7).toString() }
                 val due = runCatching { LocalDate.parse(dueText) }.getOrNull()
-                if (due == null) {
-                    Toast.makeText(this, "Date invalide (format AAAA-MM-JJ)", Toast.LENGTH_LONG).show()
+                if (due == null || due.isBefore(LocalDate.now())) {
+                    Toast.makeText(this, "Date invalide : aujourd’hui ou plus tard (AAAA-MM-JJ)", Toast.LENGTH_LONG).show()
                     return@setPositiveButton
                 }
                 val priority = PRIORITY.keys.toList()[d.spPriority.selectedItemPosition]
